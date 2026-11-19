@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+/*
+  Getto design tokens — "control console" tema.
+  Tek bir neon vurgu rengi yerine ikili, duruma bağlı bir vurgu sistemi:
+  sinyal (aktif/başarı) ve uyarı (çalışıyor/dikkat). Kritik renk sadece hata içindir.
+  Hiçbir gradient, cam efekti ya da gölge kullanılmaz — düz, teknik bir yüzey.
+*/
+
+:root {
+  --void: #0a0d10;
+  --panel: #11161b;
+  --panel-raised: #161d24;
+  --line: #232b33;
+  --line-soft: #1a2129;
+
+  --text-primary: #e4e9ed;
+  --text-dim: #7c8893;
+  --text-faint: #4a535c;
+
+  --signal: #3ddc84;
+  --signal-dim: #1f4d33;
+  --warn: #e8a33d;
+  --warn-dim: #4d3a1a;
+  --critical: #e8604a;
+  --critical-dim: #4a241d;
+}
+
+@theme inline {
+  --color-void: var(--void);
+  --color-panel: var(--panel);
+  --color-panel-raised: var(--panel-raised);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-dim: var(--text-dim);
+  --color-text-faint: var(--text-faint);
+
+  --color-signal: var(--signal);
+  --color-signal-dim: var(--signal-dim);
+  --color-warn: var(--warn);
+  --color-warn-dim: var(--warn-dim);
+  --color-critical: var(--critical);
+  --color-critical-dim: var(--critical-dim);
+
+  --font-ui: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
+}
+
+* {
+  border-color: var(--line);
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: var(--void);
+  color: var(--text-primary);
+  font-family: var(--font-ui), -apple-system, sans-serif;
+  font-feature-settings: "ss01" on;
+}
+
+::selection {
+  background: var(--signal-dim);
+  color: var(--text-primary);
+}
+
+/* Yatay bir terminal imleci — sadece kritik durum göstergelerinde kullanılır, dekoratif değil */
+@keyframes blink-caret {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.caret {
+  animation: blink-caret 1s steps(1) infinite;
+}
+
+/* İnce kaydırma çubuğu — konsol hissini bozmayacak şekilde */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--void); }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
