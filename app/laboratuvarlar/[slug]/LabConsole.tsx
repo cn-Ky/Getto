@@ -5,6 +5,19 @@ import { Icon } from "@/components/Icon";
 
 type Phase = "idle" | "starting" | "running" | "solved";
 
+const PHASE_LABEL: Record<Phase, string> = {
+  idle: "Beklemede",
+  starting: "Başlatılıyor",
+  running: "Çalışıyor",
+  solved: "Tamamlandı",
+};
+
+function lineClass(line: string) {
+  if (line.startsWith("$")) return "text-term-prompt";
+  if (line.includes("hazır")) return "text-term-ok";
+  return "text-term-text";
+}
+
 export function LabConsole({ slug }: { slug: string }) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [log, setLog] = useState<string[]>([]);
@@ -13,16 +26,16 @@ export function LabConsole({ slug }: { slug: string }) {
 
   async function startSession() {
     setPhase("starting");
-    setLog(["$ oturum baslatiliyor...", "izole ag ayriliyor..."]);
+    setLog(["$ oturum başlatılıyor…", "izole ağ ayrılıyor…"]);
 
     await fetch(`/api/labs/${slug}/start`, { method: "POST" });
 
     setTimeout(() => {
       setLog((l) => [
         ...l,
-        "izole ag hazir — lab-net bagli",
-        "hedef sistem ayaga kalkiyor...",
-        "hazir. araclarin konteyner icinde kullanilabilir.",
+        "izole ağ hazır — lab-net bağlı",
+        "hedef sistem ayağa kalkıyor…",
+        "hazır. araçların konteyner içinde kullanılabilir.",
       ]);
       setPhase("running");
     }, 900);
@@ -40,44 +53,47 @@ export function LabConsole({ slug }: { slug: string }) {
     if (data.correct) setPhase("solved");
   }
 
+  const statusDot =
+    phase === "running" || phase === "solved"
+      ? "bg-term-ok"
+      : phase === "starting"
+        ? "bg-term-warn"
+        : "bg-term-dim";
+
   return (
-    <div className="mt-6 border border-line bg-panel">
-      <div className="flex items-center justify-between border-b border-line bg-panel-raised px-4 py-2">
-        <span className="font-mono text-[11px] text-text-faint">
-          lab-konsol — {slug}
-        </span>
-        <span className="font-mono text-[11px] text-text-dim">
-          durum:{" "}
-          <span
-            className={
-              phase === "running" || phase === "solved"
-                ? "text-signal"
-                : phase === "starting"
-                  ? "text-warn"
-                  : "text-text-faint"
-            }
-          >
-            {phase === "idle" && "beklemede"}
-            {phase === "starting" && "baslatiliyor"}
-            {phase === "running" && "calisiyor"}
-            {phase === "solved" && "tamamlandi"}
-          </span>
+    <section
+      className="mt-6 overflow-hidden rounded-lg border border-term-line bg-term"
+      aria-label="Laboratuvar konsolu"
+    >
+      <div className="flex items-center justify-between gap-3 border-b border-term-line px-4 py-2.5 text-xs">
+        <span className="truncate font-mono text-term-dim">lab/{slug}</span>
+        <span className="flex shrink-0 items-center gap-2 text-term-text">
+          <span className={`h-1.5 w-1.5 rounded-full ${statusDot}`} />
+          {PHASE_LABEL[phase]}
         </span>
       </div>
 
-      <div className="min-h-[160px] px-4 py-4 font-mono text-[13px] leading-relaxed text-text-dim">
+      <div className="min-h-44 px-4 py-4 font-mono text-[13px] leading-6">
         {phase === "idle" && (
-          <button
-            onClick={startSession}
-            className="flex items-center gap-2 border border-line px-4 py-2 text-sm text-text-primary hover:border-signal hover:text-signal"
-          >
-            <Icon name="play" /> Izole oturumu baslat
-          </button>
+          <div className="flex flex-col items-start gap-4 font-sans">
+            <p className="max-w-md text-sm text-term-dim">
+              Oturumu başlattığında bu laboratuvar için izole bir ağ ve kurgusal
+              bir hedef sistem ayrılır.
+            </p>
+            <button
+              onClick={startSession}
+              className="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-strong"
+            >
+              <Icon name="play" />
+              İzole oturumu başlat
+            </button>
+          </div>
         )}
         {log.map((line, i) => (
-          <div key={i}>
-            {line} {i === log.length - 1 && phase === "starting" && (
-              <span className="caret">_</span>
+          <div key={i} className={lineClass(line)}>
+            {line}
+            {i === log.length - 1 && phase === "starting" && (
+              <span className="caret ml-1" />
             )}
           </div>
         ))}
@@ -86,10 +102,13 @@ export function LabConsole({ slug }: { slug: string }) {
       {(phase === "running" || phase === "solved") && (
         <form
           onSubmit={submitFlag}
-          className="flex items-center gap-2 border-t border-line px-4 py-3"
+          className="flex flex-col gap-2 border-t border-term-line px-4 py-3 sm:flex-row sm:items-center"
         >
-          <span className="font-mono text-[11px] text-text-faint">bayrak:</span>
+          <label htmlFor="flag" className="text-sm text-term-dim">
+            Bayrak
+          </label>
           <input
+            id="flag"
             value={flag}
             onChange={(e) => {
               setFlag(e.target.value);
@@ -97,28 +116,34 @@ export function LabConsole({ slug }: { slug: string }) {
             }}
             disabled={phase === "solved"}
             placeholder="GETTO{...}"
-            className="flex-1 border border-line bg-void px-3 py-1.5 font-mono text-sm text-text-primary outline-none focus:border-signal disabled:opacity-60"
+            autoComplete="off"
+            spellCheck={false}
+            className="flex-1 rounded-md border border-term-line bg-white/5 px-3 py-2 font-mono text-sm text-term-text outline-none placeholder:text-term-dim focus:border-term-prompt disabled:opacity-60"
           />
           <button
             type="submit"
             disabled={phase === "solved"}
-            className="border border-line px-3 py-1.5 font-mono text-xs text-text-primary hover:border-signal disabled:opacity-60"
+            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Gonder
+            Bayrağı gönder
           </button>
         </form>
       )}
 
-      {feedback === "correct" && (
-        <div className="flex items-center gap-2 border-t border-line bg-signal-dim/40 px-4 py-2 font-mono text-xs text-signal">
-          <Icon name="check" /> dogru — puan hesabina eklendi
-        </div>
-      )}
-      {feedback === "wrong" && (
-        <div className="flex items-center gap-2 border-t border-line bg-critical-dim/30 px-4 py-2 font-mono text-xs text-critical">
-          <Icon name="xmark" /> yanlis bayrak — tekrar dene
-        </div>
-      )}
-    </div>
+      <div aria-live="polite">
+        {feedback === "correct" && (
+          <div className="flex items-center gap-2 border-t border-term-line bg-term-ok/10 px-4 py-2.5 text-sm text-term-ok">
+            <Icon name="check" />
+            Doğru. Puan hesabına eklendi.
+          </div>
+        )}
+        {feedback === "wrong" && (
+          <div className="flex items-center gap-2 border-t border-term-line bg-term-bad/10 px-4 py-2.5 text-sm text-term-bad">
+            <Icon name="xmark" />
+            Bayrak yanlış. Tekrar dene.
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

@@ -1,24 +1,30 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Instrument_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
-const plexSans = IBM_Plex_Sans({
-  variable: "--font-plex-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const instrument = Instrument_Sans({
+  variable: "--font-instrument",
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
 });
 
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+});
+
+const jetbrains = JetBrains_Mono({
+  variable: "--font-jetbrains",
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Getto — Uygulamali Guvenlik Egitimi",
+  title: "Getto — Uygulamalı Güvenlik Eğitimi",
   description:
-    "Izole laboratuvarlarda, gercek dunyaya dokunmadan web guvenligi pratigi yapilan egitim platformu.",
+    "İzole laboratuvarlarda, gerçek dünyaya dokunmadan web güvenliği pratiği yapılan eğitim platformu.",
 };
 
 export default function RootLayout({
@@ -26,7 +32,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="tr">
-      <body className={`${plexSans.variable} ${plexMono.variable} antialiased`}>
+      <body
+        className={`${instrument.variable} ${bricolage.variable} ${jetbrains.variable}`}
+      >
         <Providers>{children}</Providers>
       </body>
     </html>
